@@ -3,5 +3,42 @@ title: "p8105_hw3_dr3168"
 author: "Daniela Rochez"
 date: "10/14/2021"
 output: github_document
+editor_options: 
+  chunk_output_type: console
 ---
+```{r}
+library(tidyverse)
+library(p8105.datasets)
+library(forcats)
+data("instacart")
+str(instacart)
+
+#There are 1, 384, 617 observations with 15 variables. Some of these variables include order IDs, product IDs, and name of products. There are 134 aisles. The top three aisles with the most purchases is fresh fruits, fresh vegetables, and packaged vegatbles and fruits.
+```
+
+#Counting amount of aisles
+```{r}
+instacart %>% 
+  count(aisle)
+```
+
+#Finding most popular aisles
+```{r}
+instacart %>% 
+  count(aisle) %>% 
+    filter(min_rank(desc(n)) < 4)
+```
+#Making a plot for the number of orders in each aisle
+
+```{r}
+instacart %>% 
+  group_by(aisle) %>% 
+  count(aisle) %>% 
+  rename(number_of_purchases=n) %>% 
+    filter(number_of_purchases>10000) %>% 
+      mutate(aisle=fct_reorder(number_of_purchasesaisle, ))%>% 
+        ggplot(aes(x = aisle, y = number_of_purchases ))+
+          geom_point()+
+           coord_flip()
+```
 
