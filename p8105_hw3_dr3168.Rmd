@@ -32,13 +32,22 @@ instacart %>%
 
 ```{r}
 instacart %>% 
-  group_by(aisle) %>% 
   count(aisle) %>% 
   rename(number_of_purchases=n) %>% 
     filter(number_of_purchases>10000) %>% 
-      mutate(aisle=fct_reorder(number_of_purchasesaisle, ))%>% 
+      mutate(aisle=fct_reorder(aisle, number_of_purchases ))%>% 
         ggplot(aes(x = aisle, y = number_of_purchases ))+
           geom_point()+
            coord_flip()
+```
+
+#Making a table for popular products in certain aisles
+```{r}
+instacart %>% 
+  filter(aisle %in% c("baking ingredients", 
+          "dog food care", "packaged vegetables fruits")) %>% 
+    group_by(aisle,product_name) %>% 
+     summarize(n_obs = n()) %>% 
+      filter(min_rank(desc(n_obs)) < 4)
 ```
 
