@@ -10,6 +10,7 @@ editor_options:
 library(tidyverse)
 library(p8105.datasets)
 library(forcats)
+library(patchwork)
 data("instacart")
 str(instacart)
 
@@ -117,10 +118,36 @@ brfss_smart2010 %>%
   group_by(year, locationabbr) %>% 
   summarize(average_data_value= mean(data_value, na.rm=T)) %>% 
   filter(locationabbr=="FL") %>% 
-  ggplot(aes(x = year, y = average_data_value)) + 
+  ggplot(aes(x = year, y = average_data_value, color=locationabbr)) + 
   geom_point() +
   geom_line()
 
 #What do they mean by group aesthetic?
 ```
 #Two panel plot
+```{r}
+data_value_2006= 
+  brfss_smart2010 %>% 
+  janitor::clean_names() %>% 
+  filter(year==2006 & topic =="Overall Health") %>%
+  filter(locationabbr=="NY") %>% 
+  mutate(response =fct_relevel(response,c("Poor", "Fair", "Good", "Very good", "Excellent")))%>%
+  ggplot(aes(x = response, y = data_value)) + 
+  geom_point(aes(color = locationdesc)) +
+  theme(legend.position = "none")
+
+data_value_2010= 
+  brfss_smart2010 %>% 
+  janitor::clean_names() %>% 
+  filter(year==2010 & topic =="Overall Health") %>%
+  filter(locationabbr=="NY") %>% 
+  mutate(response =fct_relevel(response,c("Poor", "Fair", "Good", "Very good", "Excellent")))%>%
+  ggplot(aes(x = response, y = data_value)) + 
+  geom_point(aes(color = locationdesc)) +
+  theme(legend.position = "bottom")
+
+data_value_2006+data_value_2010
+
+#This looks wrong...
+```
+
