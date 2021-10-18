@@ -39,6 +39,8 @@ instacart %>%
         ggplot(aes(x = aisle, y = number_of_purchases ))+
           geom_point()+
            coord_flip()
+
+#Does this look correct?
 ```
 
 #Making a table for popular products in certain aisles
@@ -48,6 +50,77 @@ instacart %>%
           "dog food care", "packaged vegetables fruits")) %>% 
     group_by(aisle,product_name) %>% 
      summarize(n_obs = n()) %>% 
-      filter(min_rank(desc(n_obs)) < 4)
+      filter(min_rank(desc(n_obs)) < 4) %>% 
+    knitr::kable(digits = 1)
+
 ```
 
+#Making Pink Lady table
+```{r}
+instacart %>% 
+  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>%    group_by(product_name, order_dow) %>% 
+    summarize(mean_orders=mean(order_hour_of_day)) %>% 
+  mutate(order_dow= recode(order_dow, `0`="Sunday",`1`="Monday",                   `2`="Tuesday", `3`="Wednesday",`4`="Thursday",`5`="Friday",
+          `6`="Saturday")) %>% 
+  pivot_wider(names_from = product_name,values_from = mean_orders) %>% 
+    knitr::kable(digits = 1)
+
+
+#Does this also look correct? Should I convert the values to hrs?
+```
+
+#BRFSS Data
+```{r}
+data("brfss_smart2010")
+str(brfss_smart2010)
+```
+
+
+```{r}
+brfss_smart2010 %>% 
+  janitor::clean_names() %>% 
+  filter(topic=="Overall Health") %>% 
+  mutate(response =fct_relevel(response,c("Poor", "Fair", "Good", "Very good", "Excellent")))
+  
+```
+
+#States observed at more than 7 locations in 2002
+```{r}
+brfss_smart2010 %>% 
+  janitor::clean_names() %>% 
+  filter(year==2002 & topic =="Overall Health") %>% 
+  group_by(locationabbr) %>% 
+  summarise(n_obs=n()) %>% 
+  filter(n_obs >=35)
+
+#Since there are 5 types of response observations at each location, we need to look for locations of at least 35 observations to determine if it was observed at 7 or more locations. The states that were observed at 7 or more locations was Connecticut, Florida, Massachusetts, North Carolina, New Jersey, and Pennsylvania
+```
+
+#States observed at more than 7 locations in 2010
+```{r}
+brfss_smart2010 %>% 
+  janitor::clean_names() %>% 
+  filter(year==2010 & topic =="Overall Health") %>% 
+  group_by(locationabbr) %>% 
+  summarise(n_obs=n()) %>% 
+  filter(n_obs >=35)
+
+#Since there are 5 types of response observations at each location, we need to look for locations of at least 35 observations to determine if it was observed at 7 or more locations. The states that were observed at 7 or more locations were California, Colorado, Florida, Massachusetts,Maryland, North Carolina,New England, New Jersey,New York, Ohio, Pennsylvania South Carolina, Texas, and Washington.
+
+```
+
+#New dataset
+```{r}
+brfss_smart2010 %>% 
+  janitor::clean_names() %>% 
+  filter(response== "Excellent" & topic =="Overall Health") %>%
+  group_by(year, locationabbr) %>% 
+  summarize(average_data_value= mean(data_value, na.rm=T)) %>% 
+  filter(locationabbr=="FL") %>% 
+  ggplot(aes(x = year, y = average_data_value)) + 
+  geom_point() +
+  geom_line()
+
+#What do they mean by group aesthetic?
+```
+#Two panel plot
