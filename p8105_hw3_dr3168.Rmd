@@ -167,15 +167,34 @@ accel_tidy_data=
     accel_data, 
     activity.1:activity.1440,
     names_to = "activity_minute", 
-    values_to = "activity_count")
-
-accel_tidy_data %>% 
-  mutate(weekday_or_weekend= recode(day, `Monday`= "Weekday", `Tuesday`="Weekday",`Wednesday`="Weekday",`Thursday`="Weekday",`Friday`="Weekday",`Saturday`= "Weekend", `Sunday`="Weekend"))
+    values_to = "activity_count") %>% 
+  mutate(day =fct_relevel(day,c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>% 
+  mutate(weekday_or_weekend= recode(day, `Monday`= "Weekday",   `Tuesday`="Weekday",`Wednesday`="Weekday",`Thursday`="Weekday",`Friday`="Weekday",`Saturday`= "Weekend", `Sunday`="Weekend"))
+  
 
 #There are 50,400 observations and 6 variables. These variables include the week, day of each week, each activity minute and the count per activity minute.
+  
+#Did I do this right?
 ```
 #Total activity variable
 ```{r}
+accel_total_activity= accel_tidy_data %>% 
+  group_by(day_id) %>% 
+  mutate(total_activity= sum(activity_count)) %>% 
+  knitr::kable(digits=1)
 
+#How do I observe a trend? I feel like I am having a hard time observing a trend based on on previous tidying up of data.
+```
+
+#Making a single panel plot
+
+```{r}
+accel_total_activity %>% 
+  ggplot(aes(x = week, y = total_activity, color=day)) + 
+  geom_line()
+
+#Did I do this right?
+
+#There is an overall decrease in total activity count on the weekends compare to the week days. However, throughout the week,the activity count fluctuates.
 ```
 
