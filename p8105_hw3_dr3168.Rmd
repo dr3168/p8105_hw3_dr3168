@@ -16,114 +16,122 @@ data("instacart")
 str(instacart)
 
 skim(instacart)
-#There are 1, 384, 617 observations with 15 variables. Some of these variables include order IDs, product IDs, and name of products. There are 134 aisles. The top three aisles with the most purchases is fresh fruits, fresh vegetables, and packaged vegatbles and fruits.
+#There are 1, 384, 617 observations with 15 variables. Some of these variables include order IDs, product IDs, and name of products.  
 ```
 
-#Counting amount of aisles
+Counting amount of aisles
 ```{r}
 instacart %>% 
   count(aisle)
+#There are 134 aisles.
 ```
 
-#Finding most popular aisles
+Finding most popular aisles
 ```{r}
 instacart %>% 
   count(aisle) %>% 
     filter(min_rank(desc(n)) < 4)
-```
-#Making a plot for the number of orders in each aisle
 
+#The top three aisles with the most purchases is fresh fruits, fresh vegetables, and packaged vegetables and fruits.
+```
+
+Making a plot for the number of orders in each aisle
 ```{r}
 instacart %>% 
   count(aisle) %>% 
-  rename(number_of_purchases=n) %>% 
-    filter(number_of_purchases>10000) %>% 
-      mutate(aisle=fct_reorder(aisle, number_of_purchases ))%>% 
-        ggplot(aes(x = aisle, y = number_of_purchases ))+
-          geom_point()+
-           coord_flip()
-
-#Does this look correct?
+    rename(number_of_purchases=n) %>% 
+      filter(number_of_purchases>10000) %>% 
+       mutate(aisle=fct_reorder(aisle, 
+                               number_of_purchases ))%>% 
+          ggplot(aes(x = aisle, y = number_of_purchases ))+
+            geom_point()+
+              coord_flip()
 ```
 
-#Making a table for popular products in certain aisles
+Making a table for popular products in certain aisles
 ```{r}
 instacart %>% 
   filter(aisle %in% c("baking ingredients", 
-          "dog food care", "packaged vegetables fruits")) %>% 
+          "dog food care", "packaged vegetables fruits")) %>%
     group_by(aisle,product_name) %>% 
      summarize(n_obs = n()) %>% 
       filter(min_rank(desc(n_obs)) < 4) %>% 
-    knitr::kable(digits = 1)
-
+       knitr::kable(digits = 1)
+#The most popular products
 ```
 
-#Making Pink Lady table
+Making Pink Lady Apples and Coffee Ice Cream table
 ```{r}
 instacart %>% 
-  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream"))%>%    group_by(product_name, order_dow) %>% 
-    summarize(mean_orders=mean(order_hour_of_day)) %>% 
-  mutate(order_dow= recode(order_dow, `0`="Sunday",`1`="Monday",                   `2`="Tuesday", `3`="Wednesday",`4`="Thursday",`5`="Friday",
-          `6`="Saturday")) %>% 
-  pivot_wider(names_from = product_name,values_from = mean_orders) %>% 
-    knitr::kable(digits = 1)
+  filter(product_name %in% 
+           c("Pink Lady Apples", "Coffee Ice Cream"))%>%
+    group_by(product_name, order_dow) %>% 
+      summarize(mean_orders=mean(order_hour_of_day)) %>%
+          mutate(order_dow= recode(order_dow,`0`="Sunday",
+                `1`="Monday",`2`="Tuesday",`3`="Wednesday",
+                `4`="Thursday",`5`="Friday",
+                `6`="Saturday"))%>% 
+             pivot_wider(names_from =product_name,
+                         values_from = mean_orders) %>%
+                knitr::kable(digits = 1)
 
-
-#Does this also look correct? Should I convert the values to hrs?
+#It seems like the mean hours for the Pink Lady Apples and the Coffee Ice Cream ranges from 11 am 3 pm throughout the week.
 ```
 
-#BRFSS Data
+Loading BRFSS Data
 ```{r}
 data("brfss_smart2010")
 str(brfss_smart2010)
 ```
 
-
+Cleaning BRFSS Data and Releveling
 ```{r}
 brfss_smart2010 %>% 
   janitor::clean_names() %>% 
   filter(topic=="Overall Health") %>% 
-  mutate(response =fct_relevel(response,c("Poor", "Fair", "Good", "Very good", "Excellent")))
-  
+  mutate(response =fct_relevel(response,c("Poor", "Fair",
+        "Good", "Very good", "Excellent")))
 ```
 
-#States observed at more than 7 locations in 2002
+States observed at more than 7 locations in 2002
 ```{r}
 brfss_smart2010 %>% 
   janitor::clean_names() %>% 
-  filter(year==2002 & topic =="Overall Health") %>% 
-  group_by(locationabbr) %>% 
-  distinct(locationdesc) %>% 
-  summarise(n_obs=n())%>% 
-  filter(n_obs >=7)
+    filter(year==2002 & topic =="Overall Health") %>% 
+      group_by(locationabbr) %>% 
+        distinct(locationdesc) %>% 
+          summarise(n_obs=n())%>% 
+            filter(n_obs >=7)
 
-#The states that were observed at 7 or more locations in 2002 was Connecticut, Florida, Massachusetts, North Carolina, New Jersey, and Pennsylvania
+#The states that were observed at 7 or more locations in 2002 were Connecticut, Florida, Massachusetts, North Carolina, New Jersey, and Pennsylvania.
 ```
 
 #States observed at more than 7 locations in 2010
 ```{r}
 brfss_smart2010 %>% 
   janitor::clean_names() %>% 
-  filter(year==2010 & topic =="Overall Health") %>% 
-  group_by(locationabbr) %>% 
-  distinct(locationdesc) %>% 
-  summarise(n_obs=n())%>% 
-  filter(n_obs >=7)
+    filter(year==2010 & topic =="Overall Health") %>% 
+      group_by(locationabbr) %>% 
+        distinct(locationdesc) %>% 
+          summarise(n_obs=n())%>% 
+            filter(n_obs >=7)
 
-#The states that were observed at 7 or more locationsin 2010 were California, Colorado, Florida, Massachusetts,Maryland, North Carolina,New England, New Jersey,New York, Ohio, Pennsylvania South Carolina, Texas, and Washington.
+#The states that were observed at 7 or more locations in 2010 were California, Colorado, Florida, Massachusetts,Maryland, North Carolina,New England, New Jersey,New York, Ohio, Pennsylvania South Carolina, Texas, and Washington.
 
 ```
 
-#New dataset
+Spaghetti plot with excellent variable
 ```{r}
 brfss_smart2010 %>% 
   janitor::clean_names() %>% 
-  filter(response== "Excellent" & topic =="Overall Health") %>%
-  group_by(year, locationabbr) %>% 
-  summarize(average_data_value= mean(data_value, na.rm=T)) %>% 
-  ggplot(aes(x = year, y = average_data_value, color=locationabbr)) + 
-  geom_line()
-
+    filter(response== "Excellent" & 
+           topic =="Overall Health") %>%
+      group_by(year, locationabbr) %>% 
+         summarize(average_data_value= 
+                     mean(data_value, na.rm=T)) %>% 
+            ggplot(aes(x = year, y = average_data_value,
+                       color=locationabbr)) + 
+                  geom_line()
 ```
 #Two panel plot
 ```{r}
@@ -169,13 +177,14 @@ accel_tidy_data=
     names_to = "activity_minute", 
     values_to = "activity_count") %>% 
   mutate(day =fct_relevel(day,c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>% 
-  mutate(weekday_or_weekend= recode(day, `Monday`= "Weekday",   `Tuesday`="Weekday",`Wednesday`="Weekday",`Thursday`="Weekday",`Friday`="Weekday",`Saturday`= "Weekend", `Sunday`="Weekend"))
+  mutate(weekday_or_weekend= recode(day, `Monday`= "Weekday",   `Tuesday`="Weekday",`Wednesday`="Weekday",`Thursday`="Weekday",`Friday`="Weekday",`Saturday`= "Weekend", `Sunday`="Weekend")) %>% 
+  
   
 #mutate(weekend=as.numeric(day %in% c(saturday, sunday)))
 
 #There are 50,400 observations and 6 variables. These variables include the week, day of each week, each activity minute and the count per activity minute.
   
-#Making minute numeric and day is a factor.
+#Making minute numeric and day is a factor. Use the prefix function to remove the "activity" portion.
 
 #Did I do this right?
 ```
@@ -183,7 +192,11 @@ accel_tidy_data=
 ```{r}
 accel_total_activity= accel_tidy_data %>% 
   group_by(day_id) %>% 
+  
   mutate(total_activity= sum(activity_count))
+pivot_wider(names_from =product_name,
+                         values_from = mean_orders) %>%
+                knitr::kable(digits = 1)
 
 #How do I observe a trend? I feel like I am having a hard time observing a trend based on on previous tidying up of data.
 
