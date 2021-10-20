@@ -11,9 +11,11 @@ library(tidyverse)
 library(p8105.datasets)
 library(forcats)
 library(patchwork)
+library(skimr)
 data("instacart")
 str(instacart)
 
+skim(instacart)
 #There are 1, 384, 617 observations with 15 variables. Some of these variables include order IDs, product IDs, and name of products. There are 134 aisles. The top three aisles with the most purchases is fresh fruits, fresh vegetables, and packaged vegatbles and fruits.
 ```
 
@@ -59,7 +61,7 @@ instacart %>%
 #Making Pink Lady table
 ```{r}
 instacart %>% 
-  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>%    group_by(product_name, order_dow) %>% 
+  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream"))%>%    group_by(product_name, order_dow) %>% 
     summarize(mean_orders=mean(order_hour_of_day)) %>% 
   mutate(order_dow= recode(order_dow, `0`="Sunday",`1`="Monday",                   `2`="Tuesday", `3`="Wednesday",`4`="Thursday",`5`="Friday",
           `6`="Saturday")) %>% 
@@ -91,10 +93,11 @@ brfss_smart2010 %>%
   janitor::clean_names() %>% 
   filter(year==2002 & topic =="Overall Health") %>% 
   group_by(locationabbr) %>% 
-  summarise(n_obs=n()) %>% 
-  filter(n_obs >=35)
+  distinct(locationdesc) %>% 
+  summarise(n_obs=n())%>% 
+  filter(n_obs >=7)
 
-#Since there are 5 types of response observations at each location, we need to look for locations of at least 35 observations to determine if it was observed at 7 or more locations. The states that were observed at 7 or more locations was Connecticut, Florida, Massachusetts, North Carolina, New Jersey, and Pennsylvania
+#The states that were observed at 7 or more locations in 2002 was Connecticut, Florida, Massachusetts, North Carolina, New Jersey, and Pennsylvania
 ```
 
 #States observed at more than 7 locations in 2010
@@ -103,10 +106,11 @@ brfss_smart2010 %>%
   janitor::clean_names() %>% 
   filter(year==2010 & topic =="Overall Health") %>% 
   group_by(locationabbr) %>% 
-  summarise(n_obs=n()) %>% 
-  filter(n_obs >=35)
+  distinct(locationdesc) %>% 
+  summarise(n_obs=n())%>% 
+  filter(n_obs >=7)
 
-#Since there are 5 types of response observations at each location, we need to look for locations of at least 35 observations to determine if it was observed at 7 or more locations. The states that were observed at 7 or more locations were California, Colorado, Florida, Massachusetts,Maryland, North Carolina,New England, New Jersey,New York, Ohio, Pennsylvania South Carolina, Texas, and Washington.
+#The states that were observed at 7 or more locationsin 2010 were California, Colorado, Florida, Massachusetts,Maryland, North Carolina,New England, New Jersey,New York, Ohio, Pennsylvania South Carolina, Texas, and Washington.
 
 ```
 
@@ -117,12 +121,9 @@ brfss_smart2010 %>%
   filter(response== "Excellent" & topic =="Overall Health") %>%
   group_by(year, locationabbr) %>% 
   summarize(average_data_value= mean(data_value, na.rm=T)) %>% 
-  filter(locationabbr=="FL") %>% 
   ggplot(aes(x = year, y = average_data_value, color=locationabbr)) + 
-  geom_point() +
   geom_line()
 
-#What do they mean by group aesthetic?
 ```
 #Two panel plot
 ```{r}
@@ -134,7 +135,8 @@ data_value_2006=
   mutate(response =fct_relevel(response,c("Poor", "Fair", "Good", "Very good", "Excellent")))%>%
   ggplot(aes(x = response, y = data_value)) + 
   geom_point(aes(color = locationdesc)) +
-  theme(legend.position = "none")
+  theme(legend.position = "none")+
+   coord_flip()
 
 data_value_2010= 
   brfss_smart2010 %>% 
@@ -144,10 +146,36 @@ data_value_2010=
   mutate(response =fct_relevel(response,c("Poor", "Fair", "Good", "Very good", "Excellent")))%>%
   ggplot(aes(x = response, y = data_value)) + 
   geom_point(aes(color = locationdesc)) +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom")+
+   coord_flip()
 
 data_value_2006+data_value_2010
 
-#This looks wrong...
+```
+
+#Loading accelerometer data
+```{r}
+accel_data= read_csv("~/School/FALL 2021/P8105/p8105_hw3_dr3168/accel_data.csv")
+summarise(accel_data)
+accel_data
+```
+
+#Tidying the data and naming variables
+```{r}
+accel_tidy_data= 
+  pivot_longer(
+    accel_data, 
+    activity.1:activity.1440,
+    names_to = "activity_minute", 
+    values_to = "activity_count")
+
+accel_tidy_data %>% 
+  mutate(weekday_or_weekend= recode(day, `Monday`= "Weekday", `Tuesday`="Weekday",`Wednesday`="Weekday",`Thursday`="Weekday",`Friday`="Weekday",`Saturday`= "Weekend", `Sunday`="Weekend"))
+
+#There are 50,400 observations and 6 variables. These variables include the week, day of each week, each activity minute and the count per activity minute.
+```
+#Total activity variable
+```{r}
+
 ```
 
