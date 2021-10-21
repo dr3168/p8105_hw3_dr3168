@@ -57,7 +57,8 @@ instacart %>%
      summarize(n_obs = n()) %>% 
       filter(min_rank(desc(n_obs)) < 4) %>% 
        knitr::kable(digits = 1)
-#The most popular products
+
+#The most popular products in the baking ingredients is cane sugar, light brown sugar, and baking soda. The most popular products in the dog food care aisle is organix Chicken & Brown Rice Recipe , small dog biscuits, and Snack Sticks Chicken & Rice Recipe Dog Treats. The most popular products in packaged vegetables fruits is organic baby spinach, organic blueberries, and organic raspberries.
 ```
 
 Making Pink Lady Apples and Coffee Ice Cream table
@@ -90,7 +91,8 @@ brfss_smart2010 %>%
   janitor::clean_names() %>% 
   filter(topic=="Overall Health") %>% 
   mutate(response =fct_relevel(response,c("Poor", "Fair",
-        "Good", "Very good", "Excellent")))
+                                          "Good", "Very good",
+                                          "Excellent")))
 ```
 
 States observed at more than 7 locations in 2002
@@ -132,18 +134,22 @@ brfss_smart2010 %>%
             ggplot(aes(x = year, y = average_data_value,
                        color=locationabbr)) + 
                   geom_line()
+#The average data values fluctuates between each state. However most of the values fall between 17.5 and 27.5.
 ```
-#Two panel plot
+
+Making Two panel plot
 ```{r}
 data_value_2006= 
   brfss_smart2010 %>% 
   janitor::clean_names() %>% 
   filter(year==2006 & topic =="Overall Health") %>%
   filter(locationabbr=="NY") %>% 
-  mutate(response =fct_relevel(response,c("Poor", "Fair", "Good", "Very good", "Excellent")))%>%
+  mutate(response =fct_relevel(response,c("Poor", "Fair", "Good", 
+                                          "Very good", "Excellent")))%>%
   ggplot(aes(x = response, y = data_value)) + 
   geom_point(aes(color = locationdesc)) +
   theme(legend.position = "none")+
+  ggtitle("2006 Data")+
    coord_flip()
 
 data_value_2010= 
@@ -151,60 +157,69 @@ data_value_2010=
   janitor::clean_names() %>% 
   filter(year==2010 & topic =="Overall Health") %>%
   filter(locationabbr=="NY") %>% 
-  mutate(response =fct_relevel(response,c("Poor", "Fair", "Good", "Very good", "Excellent")))%>%
+  mutate(response =fct_relevel(response,c("Poor", "Fair", "Good", 
+                                          "Very good", "Excellent")))%>%
   ggplot(aes(x = response, y = data_value)) + 
   geom_point(aes(color = locationdesc)) +
   theme(legend.position = "bottom")+
+  ggtitle("2010 Data")+
    coord_flip()
 
 data_value_2006+data_value_2010
 
+#The data values also vary between NY county and and response type. It seems like for both years, data value starts to increase as response variables start to get better. The only exception is for the "excellent" response variable. The data values decreases slightly for that variable.
+
 ```
 
-#Loading accelerometer data
+Loading accelerometer data
 ```{r}
 accel_data= read_csv("~/School/FALL 2021/P8105/p8105_hw3_dr3168/accel_data.csv")
 summarise(accel_data)
 accel_data
 ```
 
-#Tidying the data and naming variables
+Tidying the data and naming variables
 ```{r}
 accel_tidy_data= 
   pivot_longer(
     accel_data, 
     activity.1:activity.1440,
-    names_to = "activity_minute", 
+    names_to = "activity_minute",
+    names_prefix = "activity.",
     values_to = "activity_count") %>% 
-  mutate(day =fct_relevel(day,c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>% 
-  mutate(weekday_or_weekend= recode(day, `Monday`= "Weekday",   `Tuesday`="Weekday",`Wednesday`="Weekday",`Thursday`="Weekday",`Friday`="Weekday",`Saturday`= "Weekend", `Sunday`="Weekend")) %>% 
+  mutate(day =fct_relevel(day,c("Monday", "Tuesday", "Wednesday",
+                                  "Thursday", "Friday", "Saturday",
+                                  "Sunday"))) %>% 
+  mutate(weekday_or_weekend= recode(day, `Monday`= "Weekday",
+                                      `Tuesday`="Weekday",
+                                      `Wednesday`="Weekday",
+                                      `Thursday`="Weekday",
+                                      `Friday`="Weekday",
+                                      `Saturday`= "Weekend",
+                                      `Sunday`="Weekend")) %>% 
+  mutate(activity_minute=as.numeric(activity_minute))
   
-  
-#mutate(weekend=as.numeric(day %in% c(saturday, sunday)))
+accel_tidy_data
 
 #There are 50,400 observations and 6 variables. These variables include the week, day of each week, each activity minute and the count per activity minute.
   
-#Making minute numeric and day is a factor. Use the prefix function to remove the "activity" portion.
-
-#Did I do this right?
 ```
-#Total activity variable
+
+Making Total activity variable
 ```{r}
-accel_total_activity= accel_tidy_data %>% 
+accel_total_activity=
+  accel_tidy_data %>% 
   group_by(day_id) %>% 
+  mutate(total_activity= sum(activity_count)) %>% 
+  pivot_wider(
+    names_from =activity_minute,
+    values_from = activity_count) %>% 
+  knitr::kable(digits = 1)
+
   
-  mutate(total_activity= sum(activity_count))
-pivot_wider(names_from =product_name,
-                         values_from = mean_orders) %>%
-                knitr::kable(digits = 1)
-
-#How do I observe a trend? I feel like I am having a hard time observing a trend based on on previous tidying up of data.
-
-#Do pivot_wider
 ```
 
-#Making a single panel plot
-
+Making a single panel plot
 ```{r}
 accel_total_activity %>% 
   ggplot(aes(x = activity_minute, y = activity_count,group=day_id, color=day)) + 
