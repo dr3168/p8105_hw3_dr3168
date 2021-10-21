@@ -209,31 +209,27 @@ Making Total activity variable
 ```{r}
 accel_total_activity=
   accel_tidy_data %>% 
-  group_by(day_id) %>% 
+  group_by(day_id) %>%
   mutate(total_activity= sum(activity_count)) %>% 
-  pivot_wider(
-    names_from =activity_minute,
-    values_from = activity_count) %>% 
-  knitr::kable(digits = 1)
-
+  pivot_wider(names_from =activity_minute,
+              values_from = activity_count)
   
+view(accel_total_activity)
+
+#The total activity varies from day to day but I have not seen a trend. It is also very difficult to see if there is a trend with the table. A plot may be better.
+
+```
+Making the table with total activity
+```{r}
+accel_total_activity %>% 
+  knitr::kable(digits = 1)
 ```
 
 Making a single panel plot
 ```{r}
-accel_total_activity %>% 
-  ggplot(aes(x = activity_minute, y = activity_count,group=day_id, color=day)) + 
-  geom_line(alpha=0.2)+
+accel_tidy_data %>% 
+  ggplot(aes(x = activity_minute, y = activity_count,
+             group=day_id, color=day)) + 
   geom_smooth(aes(group=day), se=F)
-  
+#The activity count started off real slow but throughout the day it starts to increase. Then it significantly drops towards approaching the 1400th minute. This correlated with awake-status. The patient most likely wont be awake around midnight, therefore the activity count is low. However the person will be wide awake and moving throughout the day, hence is higher activity count.
 ```
-
-
-```{r}
-#Did I do this right?
-
-#X should be minutes and group by day_id
-
-#There is an overall decrease in total activity count on the weekends compare to the week days. However, throughout the week,the activity count fluctuates.
-```
-
